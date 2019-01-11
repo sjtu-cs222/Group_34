@@ -1,0 +1,390 @@
+% Compilation using 'acmtog.cls' - version 1.2 (March 2012), Aptara Inc.
+% (c) 2010 Association for Computing Machinery (ACM)
+%
+% Questions/Suggestions/Feedback should be addressed to => "acmtexsupport@aptaracorp.com".
+% Users can also go through the FAQs available on the journal's submission webpage.
+%
+% Steps to compile: latex, bibtex, latex latex
+%
+% For tracking purposes => this is v1.2 - March 2012
+\documentclass{acmtog} % V1.2
+
+%\acmVolume{VV}
+%\acmNumber{N}
+%\acmYear{YYYY}
+%\acmMonth{Month}
+%\acmArticleNum{XXX}
+%\acmdoi{10.1145/XXXXXXX.YYYYYYY}
+
+\acmVolume{28}
+\acmNumber{4}
+\acmYear{2009}
+\acmMonth{September}
+% \acmArticleNum{106}
+% \acmdoi{10.1145/1559755.1559763}
+
+\begin{document}
+
+\markboth{LI JINYUAN {\upshape and} CHAI ZHENGHAO}{Image Classification on edge simulation based on Federated Learning}
+
+\title{Image Classification on edge simulation based on Federated Learning} % title
+
+\author{LI JINYUAN {\upshape and} CHAI ZHENGHAO
+\affil{Shanghai Jiao Tong University}
+% NOTE! Affiliations placed here should be for the institution where the
+%       BULK of the research was done. If the author has gone to a new
+%       institution, before publication, the (above) affiliation should NOT be changed.
+%       The authors 'current' address may be given in the "Author's addresses:" block (below).
+%       So for example, Mr. Fogarty, the bulk of the research was done at UIUC, and he is
+%       currently affiliated with NASA.
+}
+
+\category{}{Machine Learning}{Distributed Deep Learning}
+
+
+\terms{Federated Learning}
+
+\keywords{Edge computing, Image Classification, Differential Privacy}
+
+% \acmformat{Petros Debesay, Kevin Chen Trieu. 2009. Photorealistic models for pupil light reflex and iridal pattern deformation.
+% {\em ACM Trans. Graph.} 28, 4, Article 106 (September 2009), 10 pages.\\
+% \doiline}
+
+\maketitle
+
+
+% \begin{bottomstuff}
+% Manuel M. Oliveira acknowledges a CNPq-Brazil fellowship (305613/2007-3). Gladimir V. G. Baranoski acknowledges a
+% NSERC-Canada grant (238337). Microsoft Brazil provided additional support.
+% Authors' addresses: Sean Fogarty, (Current address) NASA Ames Research Center, Moffett Field, California 94035.
+% \end{bottomstuff}
+
+
+\begin{abstract}
+The increasing utilization of edge devices leads to rich data in private devices that is suitable for model training to improve the user experience. For privacy concern, the data can not be retrieved directly from client devices. So federated learning is introduced to obtain the data with less privacy loss, where edge devices train the models locally with user dataset and the central server aggregates parameters from local models to decouple the model training from the need for the central server accessing the raw user data. We set up the federated structure on the image classification task and test its results. Considering the remaining privacy risk in federated learning that the information of certain client's data could be revealed through the trained model, we apply differential privacy preserving mechanism in federated optimization to improve the privacy protection result by hiding one client's contribution in model training and analyze the privacy loss quantitatively.
+\end{abstract}
+
+\section{Introduction}
+\label{sec:intro}
+Today cell phones have become widely used and thus cell phone user generate massive amount of useful data every day. The data can be potentially used to train models with labels inferred from user interaction in supervised tasks and make models more powerful to improve the user experience. For example, the photographs taken and classified by users can potentially train the more intelligent image classification models.
+
+Though users hold large amount of useful data on their devices, there are several problems to retrieve the data for training models. One of the problems can be quantity of the data may be too large for directly transmitting thus data can not be logged to the data center directly for training.
+
+A more troublesome problem is that considerable part of the data is privacy sensitive, which also prevents the data from directly usage in the central server. Thus, Federated Learning is introduced to address such problem. 
+
+And the security problem also requires that users' information cannot reveal through analyzing the trained model to prevent the attackers with full knowledge of the training mechanism and access to the model's parameters. For this reason, some encryption methods are required for privacy protection and we suggest the differential privacy mechanism into federated structure to analyze and address the problem.
+
+
+
+\section{Background and related works}
+\label{sec:background}
+\subsection{Federated Learning}
+The idea of Federated Learning is introduced to overcome the problem of privacy leakage. In Federated Learning, model training is done by a central server and several user devices where the training data distributed on the user devices. The server maintains a global model and each device owns a local dataset generated from users' behavior and a local model which is received from the central server. Some devices train the local model using their local datasets and obtain the update of the local model. The central server aggregates all the updates from devices and generates the update to the global model. With Federated Learning, the cloud is kept from accessing user data and the updates are ephemeral and never contain more information than the raw training data, thus the privacy the security risks can be reduced compared to the centralized method. 
+
+Google directs the attention to the massive data generated by cell phone users and investigates the Federated Learning technique \cite{Brendan2016} introducing the basic Federated Averaging Algorithm to deal with the federated optimization. They use Federated Learning to achieve the mobile keyboard prediction task \cite{Hard2018} that represents one of the first application of federated language model in commercial setting offering privacy advantages.
+
+
+
+\subsection{Differential privacy}
+Differential privacy \cite{Dwork2014} serves as a rigorous standard for privacy guarantees for algorithms on data analysis. In our experiments, for instance, we can view each training dataset as a set of image-label pairs. We define that two of these pairs are adjacent if they differ only in a single entry. We use the definition as follows:
+
+A randomized mechanism $M:D \rightarrow R$ with domain $D$ and range $R$ satisfies $(\epsilon, \delta)$ differential privacy if for any two adjacent inputs $d, d' \in D$ and for any subset of outputs $S \subset R$ it holds that
+
+$$Pr[M(d) \in S] \leq e^\epsilon Pr[M(d') \in S] + \delta$$
+
+In this definition, $\delta$ accounts for the probability that plain $\epsilon$ differential privacy is broken. The composition theorems enable application in the case of learning algorithm: if all the components of a mechanism are differentially private, then so is their composition. The composition privacy implies degradation of privacy preservation if datasets contain correlated components, or, in our experiments, the training data contributed by the same individual is train by several rounds.
+
+\subsection{Noise addition mechanism}
+A common approach for approximating a deterministic real-valued function $f:D \rightarrow R$ with a differentially private mechanism is adding the noise calibrated to $f's$ sensitivity $S_f$, which is defined as the maximum of the absolute distance $|f(d)-f(d')|$ where $d$ and $d'$ are adjacent inputs. For example, the Gaussian noise mechanism is defined as:
+
+$$M(d) \triangleq f(d) + N(0,S_f^2 \centerdot \sigma^2)$$
+
+where $N(0, S_f^2 \centerdot \sigma ^2)$ is the normal (Gaussian) distribution with mean 0 and standard deviation $S_f \sigma$. A single application of the Gaussian mechanism to function $f$ of sensitivity $S_f$ satisfies $(\epsilon, \delta)$ differential privacy if $\delta \leq \frac{4}{5} \exp(-(\sigma \epsilon)^2 / 2)$
+
+The differential private noise adding mechanism is specified by He et al \cite{He2017}. and some mathematical foundations of the differential privacy preserving mechanism are established. Then Abadi et al.\cite{Abadi2016}  introduce the differential privacy mechanism into deep learning for privacy and security improvement in conventional neural networks training that provide a way to hide contribution of the data points in model training.
+
+\subsection{Dp SGD algorithm}
+Recently, \cite{Abadi2016} proposed a differentially private stochastic gradient descent algorithm, which works similar to mini-batch gradient descent in the sense of distributed learning but the gradient averaging process is from the approximation by Gaussian model. What's more, mini-batches are mainly distributed by random sampling of data. In common approach, a privacy accountant keeps trac of $\delta$ and stops the round of training once the given threshold is reached. That means, training would stop once the system detects that the privacy loss for a client is used up, and further utilization of personal training data would become hazardous to one's privacy. 
+\begin{figure}[t]
+\centerline{\includegraphics[width=7cm]{DP_SGD.png}}
+\caption{Illustration of Dp SGD Algorithm}
+    \label{fig:DP_SGD}
+\end{figure}
+
+\subsection{Moments accountant}
+Many research has studied the privacy loss condition for a particular noise distribution as well as the compositions of different privacy loss. As for the Gaussian noise condition, if we choose $\delta$ to be $\sqrt{2\log \frac{1.25}{\delta}}/\epsilon$, by standard arguments from \cite{Dwork2014} each step is $(\epsilon, \delta)$ differentially private with respect to the sub batch. We can ragard the sub batch as a random sample from the database. By the privacy amplification theorem \cite{Dwork}, we can know that each step is $(O(q\epsilon), q\epsilon)$ differentially  private with the sample ratio $q = L / N$. Other works show that the best overall bound is the strong composition theorem. 
+
+\subsubsection{Privacy loss random variable}
+The moment accountant is generally used to keep track of the bound of the privacy loss. It can help to provide much tighter bound of the privacy loss.
+
+In \cite{Abadi2016}, privacy loss is a random variable dependent on the random noise added to the algorithm. It claims that a mechanism $M$ is $(\epsilon, \delta)$ differentially private is equivalent to a certain bound on $M's$ privacy loss random variable. Also, the tail bound is beneficial, while composing directly from it may result in a looser bound. Instead we can compute the log moments of the privacy loss. Combine the moment bounds with the standard Markov inequality to obtain the tail bound to compose the privacy loss in the sense of differential privacy loss.
+
+To be more specific, for neighboring databases $d, d' \in D^n$, a mechanism $M$, auxiliary input $aux$, and an outcome $o\in R$, define the privacy loss at $o$ as 
+
+$$c(o;M,aux,d,d') \triangleq \log {\frac{\Pr[M(aux,d) = o]}{\Pr[M(aux,d') = o]}}$$
+
+\subsection{Conditions of differential privacy}
+A necessary and sufficient condition of $\epsilon$ differentially private is given in the following theorem.(\cite{He2017})
+
+$A$ is $\epsilon$ differentially private if and only if the following two conditions hold, 
+
+c1: zero measure of the zero-point set
+
+$$\mu(\cup_{i = 1}^{n} \Phi_{i}^{0}) = 0$$
+
+where $\Phi_{i}^{0} = \{z | f_{\theta_i} (z)  = 0, z \in R \}$ is the zero point set and $\mu(\bullet)$ is the Lebsque measure.
+
+c2: there exists a positive constant $c_b$ such that
+
+$$\sup_{\hat{\sigma} \in [-\sigma, \sigma], f_{\theta_i} (z) \neq 0} \frac{f_{\theta_i+\hat{\sigma}} (z)}{f_{\theta_i} (z)} \leq c_b$$
+
+$\forall i \in V$, where the acnodes space (isolated point) of both $f_{\theta_i + \hat{\sigma}}$ and $f_{\theta_i}$ are not considered.
+
+\section{Motivation}
+\label{sec:motivation}
+Recently, a lot of research has been conducted to deal with privacy problem in data mining. We specify this problem under the context of Federated learning, which is a novel idea and framework in the field of Edge computing and Deep learning.In Federated Learning, privacy protection is achieved by locally training the models in client devices and keeping the user data from the central server. However, this method may still have some risks of privacy leakage. The parameters of the local models from client devices may still reveal the information about user data used for training model. The method could be exposed to differential attacks, which could start from users' contributing during federated optimization and in such attack, a client's information can be revealed through analyzing the global model deliberately with another knowledge of the model mechanism. In fact, some other papers point out that when dealing with privacy problem in data processing and analysis, the rigorous approach should be the $(\delta, \epsilon)$ representation under its mathematical definition.
+
+Considering the defect of federated learning, the application of differential privacy preserving mechanism in federated optimization may be helpful\cite{Geyer2017}. Using the client sided differential privacy preserving federated optimization, whether a certain client's data has contributed in model training may be hided to some extent when analyzing the learned model, thus a client's data can be protected from attacks by someone knowing the training mechanism and accessing to the model parameters. And the application of differential privacy can also provide a quantitative indicator for privacy analysis which Federated Learning do not focus on. 
+
+In the project, we set the background to the image classification model aiming as a photo classifier helping user classify the photos they took. So we implement federated learning on the image classification task and compare the federated structure with the centralized structure. Then we implement the differential privacy preserving mechanism in federated optimization to improve the basic federated learning in privacy protection and analyze the privacy loss quantitatively to test the improvement of the results.
+
+
+\section{Problem formulation}
+\label{sec:formulation}
+\subsection{Research objectives}
+We are looking forward to formulating this problem under the $(\delta, \epsilon)$ representation and carrying out the deployment of this model. We mainly focus on the application field as image classification for an easier approach and confine the model under the topic of Federated learning, which means that we should obey the basic average framework of the target learning model. In order to preserve models' comparability, we just add further restriction on the traditional privacy-preserved learning model.
+
+We mainly propose that those differential privacy mechanisms can also apply to the Federated learning models, especially under the noise-adding mechanism. We also simulate this model on the single-node platform and predict the output with the input of traditional MNIST dataset. The outcome shows that the noise-adding mechanism is a plausible approach of preserving client's privacy and the accuracy loss can be acceptable given client's total privacy budget. 
+
+\subsection{Nature of the problem}
+Privacy preservation is a practical and enormous application field in Network Security and Data Processing, therefore, we mainly focus on the application issue in Federated learning topic, which can reduce much background knowledge requirement and save our energy. 
+
+In fact, Federated learning is a new topic just because it transfers the traditional model platform from Server to Edge devices. Such model mainly utilizes existent algorithms and models from the field of distributed learning, also bringing other edge-specified issues into the field, including communication cost and non-IID data. In order to do the research under the issue which is generic in both server and edge devices, we select the privacy preservation problem as our research target. 
+
+Practically speaking, introducing privacy concern into those existent learning models has so far caused only detrimental effects towards the final outcome, which means the relationship between privacy preservation and model's outcome is a trade-off. Introducing differential privacy into our model has another benefit, since the benchmark and criteria would differ a lot if different researchers choose different index, it is significant to discuss and compare the outcome under the same criterion. The goal for the researches in this field would mainly be bounding some parameters as much as possible to reduce its effect on overall performance. 
+
+\section{Proposed methods}
+\label{sec:methods}
+\subsection{Federated Averaging Algorithm}
+We first implement the basic Federated Learning using Federated Averaging Algorithm, which adapts the idea of simple stochastic gradient descent into federated optimization problem, resolving the challenges including information overhead between clients and server, non-IID and unbalanced distributed data. The basic idea of the algorithm is random selection in the client device for computing efficiency and taking the weighted average of the local parameters. The algorithm is described as below.
+\begin{itemize}
+\item Assume there are $K$ client device in total with a fixed local dataset. The global model in the central server owns the initialized parameter. $\omega_0$
+\item In each communication around $t$, randomly select a fraction $C$ of devices and send the current global model $\omega_t$ to them. 
+\item Then each selected client device $k$ performs training locally on its local dataset with SGD on their local model $\omega_{t}^{k}$ with $E$ echoes and batch size of $B$ to compute the update$\omega_{t+1}^{k}$.
+In each echo, divide the dataset into batches and in each step, $\omega_{t}^{k} \leftarrow \omega_{t}^{k} - \eta \nabla l(\omega_{t}^{k}; b)$
+where $b$ is a batch of local dataset with size $B$, and $\eta$ is the learning rate.
+\item Devices send the update $\omega_{t+1}^{k}$ to the server and the server aggregates the update by weighted average of the updates to update the global model $\omega_{t+1} \leftarrow \sum \frac{n_k}{n}\omega^{k}_{t+1}$, where $n_k$ is the data size of each local dataset and $n = \sum n_k$.
+\item By calculating the privacy cost and evaluating the new central model, training is either stopped or the communication would start a new round.
+\end{itemize}
+Those basic laws show that clients never share data between each other, only central parameter server would coordinate model parameters with the clients.
+
+\subsection{Federated learning with differential privacy}
+\label{sec:method}
+In the traditional Federated learning framework, the central curator averages client models (weight parameters) at the end of each communication round. We apply the randomized mechanism to provide noise element into the communication message between clients and curator. This approach is effective for hiding the concrete single client's data distribution in both aggregation process and local learning process. 
+
+The specified random mechanism lies in following detailed steps:
+
+\begin{itemize}
+    \item {Random sub-batch sampling}
+    
+    If the total number of clients is $N$, in each communication round a random subset $K_t$ of smaller size is sampled. The curator will distributes the central model $w_t$ to only those random selected clients. The central model is trained and updated by the client's on their edge devices based on their own data. The selected clients in this round now hold their local models $\{w^k\}(k<|K|)$. The difference which is regarded as the update for certain clients are sent back to the central curator at the end of each communication round. 
+    
+    \item {Choose the clipping value S}
+    
+    GM is usually used to distort the sum of all updates from clients. We can force the dataset to have certain sensitivity by using scaled version instead of the unbounded true updates. we can let $\Delta \bar{w}_k = \Delta \frac{w_k}{\max (1, \frac{||\Delta w_k||_2}{S})}$. Here we use to make the second norm of weight bounded to S. Thus, the sensitivity of the scaled updates after the summing process is upper bounded by $S$. Now, our GM model can add noise which is scaled to sensitivity $S$ to the scaled updates. There is trade-off in clipping noise contribution. $S$ should be chosen small such that we could control the noise variance to be small. On the other hand, we want to maintain as much of the original contributions as possible. Therefore, we could let $S = median \{\Delta w^k\}_{k \in Z_t}$.
+    
+    \item {Iterate $\sigma$ and $m$}
+    
+    Given $S$, the ratio $ r = \sigma ^2 / m$ will govern the distortion and privacy loss. The privacy account theorem tells us that for a fixed $r=\sigma^2/n$, privacy loss is smaller for $\sigma$ and $m$ both being small. An upper bound on the distortion rate $r$ and a lower bound on the number of sub-batched clients would dominate the choice of $\sigma$. But, since the data in federated settings is non-IID and the data contributed from various clients might be very distinct. We can therefore define the between clients variance $V_c$ as a measure of similarity between client updates.
+    
+    We investigate differential privacy in the simulated federated learning setting for different $N \in {100, 1000, 10000}$. In each setting the clients get exactly 600 data points. 
+    
+    For all three $N$, we perform a cross-validation iteration search on the following parameters:
+    
+    \begin{itemize}
+        \item {Number of batches per client $B$}
+        \item {Epochs to run on each client $E$}
+        \item {Number of clients participating in each round $m$}
+        \item {The GM parameter $\sigma$}
+    \end{itemize}
+\end{itemize}
+
+\section{Experiments}
+\label{sec:experiments}
+We divide the MNIST raw data into parts. Consequently each client gets two parts, which from the probability theorem, averagely most clients will take test samples from two digits only. Therefore we construct the system that every single client could never train a model properly with only local data to train the model which can predict all ten digits.
+
+\subsection{Data preprocessing}
+We mainly use MNIST dataset to compose our training and validation set, and we sort the query for every label digit. Initially, we construct several simulated clients on the single node. And we split the raw training data to several parts, and every two parts serve a client. Finally, every client would receive about 500 records of training data, and the shuffle process is implemented by random permutation in order to ensure every client holds training data with different digits.
+
+\subsection{Training graph construction}
+First, we construct two operations to increase the global step variable and set global step variable respectively. The loss and correct evaluation is defined in the MNIST graph, where we construct the fully connected model with 2 hidden layers. In each round, if the last step exhausts the privacy budget, then we will enforce to end the round. For each round, we implement the random choosing process by those pre-constructed files storing the possible sub batch each client will use in each communication round in quite a manual way, including selecting and shuffling.
+
+
+
+
+Then, we construct the $model\_placeholder$ to store the new placeholder for the total model, derived from the local model variables. Also, we need the assignment operations to update the model variables to the local ones. $load\_from\_directory\_or\_initialize$ function helps us to initialize our model, where we construct the $accuracy\_account$ and $delta\_account$ or we check whether those model records already exist. The $noise account$ is also constructed in this function. 
+
+\subsection{Result and analysis}
+Because of the mechanism adopted by Federated learning, as Fig.\ref{fig:loss} and Fig.\ref{fig:accuracy} shows, Federated learning always sacrifices its performance in the aspect of accuracy. Intuitively, this approach only utilizes part of the training data at each step and non-IID data property can be another important fact for lower performance. 
+\begin{figure}[t]
+\centerline{\includegraphics[width=7cm]{loss.png}}
+\caption{Training loss under different frameworks}
+    \label{fig:loss}
+\end{figure}
+\begin{figure}[t]
+\centerline{\includegraphics[width=7cm]{accuracy.png}}
+\caption{Validation accuracy under different frameworks}
+    \label{fig:accuracy}
+\end{figure}
+
+
+However, in the Federated settings, as Fig.\ref{fig:noise2} shows, noise mechanisms being differentially private won't effect much of the performance in the initial few steps. For a certain number of clients, if we specify the number of clients participated in each communication round, then in the first few rounds, as Fig.\ref{fig:n100epsilon2} shows, the privacy loss tends to increase exponentially, but the model accuracy won't get much improvement during the federated training.
+
+\begin{figure}[t]
+\centerline{\includegraphics[width=7cm]{noiseandwithoutnoise.jpg}}
+\caption{Validation accuracy under different noise conditions}
+    \label{fig:noise2}
+\end{figure}
+
+\begin{figure}[t]
+\centerline{\includegraphics[width=7cm]{N100epsilon2plandacc.jpg}}
+\caption{Relationship between privacy loss and accuracy with 100 clients}
+    \label{fig:n100epsilon2}
+\end{figure}
+
+Given the privacy budget, if we set larger $\epsilon$, it can be inferred that the model will be more tolerant to the privacy loss hazard. Actually, if we set the $\epsilon$ to be infinite, the differentially private model would totally degrade to the non-private training system. 
+\begin{figure}[t]
+\centerline{\includegraphics[width=7cm]{diffeacc.jpg}}
+\caption{Validation accuracy with different privacy tolerance}
+    \label{fig:diffeacc}
+\end{figure}
+\begin{figure}[t]
+\centerline{\includegraphics[width=7cm]{diffepl.jpg}}
+\caption{Privacy loss with different privacy tolerance}
+    \label{fig:diffepl}
+\end{figure}
+
+Clients participated in each communication round would also affect the privacy loss among them, as Fig.\ref{fig:diffclients},\ref{fig:diffclientpl} shows.
+\begin{figure}[t]
+\centerline{\includegraphics[width=7cm]{diffclients.jpg}}
+\caption{Larger participation ratio would terminate communication step in advance}
+    \label{fig:diffclients}
+\end{figure}
+
+\begin{figure}[t]
+\centerline{\includegraphics[width=7cm]{diffclientpl.jpg}}
+\caption{Larger participation ratio would terminate privacy loss accumulation in advance}
+    \label{fig:diffclientpl}
+\end{figure}
+
+\section{Conclusion}
+\label{sec:conclusion}
+To deal with the privacy concern in edge computing, we show the effectiveness of federated learning and compare the results with the centralized and distributed structure on the image classification task. To improve federated model with respect to privacy protection, we introduce the differential privacy mechanism into model training. By testing the models with different noise approximation levels，comparing them with the original model and analyzing the privacy loss quantitatively in various communication rounds and client number, we show the accuracy could be preserved with more effective privacy protection and there are many works to do to analyze and reduce the privacy loss in the context of edge computing.
+
+
+
+
+
+
+% \begin{table*}[t]
+% \tabcolsep22pt
+% \tbl{Summary of the  Main Mathematical and Physical Quantities Considered in the Development of the Proposed
+% Models}{%
+% \begin{tabular}{@{}ccc@{}}\hline
+% Symbol &{Description} &{Physical Unit} \\
+% \hline
+% $L_{b}$ & luminance & blondels (B) \\
+% $L_{fL}$ & luminance & foot-Lambert (fL) \\
+% $I_{l}$ & illuminance & lumens/$mm^2$  (lm/$mm^2$)\\
+% $R$ & light frequency & {Hertz (Hz)} \\
+% %% $\phi$ & retinal light flux & lumens  ({\it lm}) \\
+% %% $\bar{\phi}$ & retinal light flux threshold & lumens  ({\it lm}) \\
+% $D$ & pupil diameter & millimeters  ({\it mm}) \\
+% $A$ & pupil area & square millimeters  ($mm^2$) \\
+% $r_I$ & individual variability index & $r_I \in$ [0,1] \\
+% $t$ & current simulation time & milliseconds  ({\it ms}) \\
+% $\tau$ & pupil latency & milliseconds  ({\it ms}) \\
+% $x$ & muscular activity & none\\
+% $\rho_{i}$ & ratio describing the relative position & none \\
+% $\beta, \alpha, \gamma, k$ & constants of proportionality & none \\\hline
+% \end{tabular}}
+% \label{tab:symbols}
+% \begin{tabnote}
+% This is an example of table footnote. This is an example of table footnote. This is an example of table footnote.
+% This is an example of table footnote. This is an example of table footnote.
+% \end{tabnote}
+% \end{table*}
+
+% \begin{figure*}[t]
+% \centerline{\includegraphics[width=11cm]{tog-sample-mouse}}
+% \caption{Comparison of the results predicted by our models against video
+% of a human iris. (left) One frame of an animation simulating the changes
+% in pupil diameter and iridal pattern deformation. (center) One frame
+% from a video of a human iris. (right) Graph comparing the measured pupil
+% diameters from each individual frame of a nine-second-long video
+% sequence (green line) against the behavior predicted by our model (red
+% line). The gray bars indicate the periods in which the light was kept on
+% and off. The complete video sequence and corresponding animation are
+% shown in the accompanying video.}
+%   \label{fig:videocomparison}
+% \end{figure*}
+
+
+
+
+\section{Typical references in new ACM Reference Format}
+An arXiv article \cite{Hard2018},
+an arXiv article \cite{Brendan2016},
+an arXiv article \cite{Geyer2017},
+a monograph \cite{Goos},
+a technical report \cite{Dwork},
+an arXiv article \cite{He2017},
+an arXiv article \cite{Abadi2016},
+a monograph\cite{Dwork2014}.
+% A paginated journal article \cite{Abril07}, an enumerated
+% journal article \cite{Cohen07}, a reference to an entire issue \cite{JCohen96},
+% a monograph (whole book) \cite{Kosiur01}, a monograph/whole book in a series (see 2a in spec. document)
+% \cite{Harel79}, a divisible-book such as an anthology or compilation \cite{Editor00}
+% followed by the same example, however we only output the series if the volume number is given
+% \cite{Editor00a} (so Editor00a's series should NOT be present since it has no vol. no.),
+% a chapter in a divisible book \cite{Spector90}, a chapter in a divisible book
+% in a series \cite{Douglass98}, a multi-volume work as book \cite{Knuth97},
+% an article in a proceedings (of a conference, symposium, workshop for example)
+% (paginated proceedings article) \cite{Andler79}, a proceedings article
+% with all possible elements \cite{Smith10}, an example of an enumerated
+% proceedings article \cite{VanGundy07},
+% an informally published work \cite{Harel78}, a doctoral dissertation \cite{Clarkson85},
+% a master's thesis: \cite{anisi03}, an online document / world wide web resource \cite{Thornburg01}, \cite{Ablamowicz07},
+% \cite{Poker06}, a video game (Case 1) \cite{Obama08} and (Case 2) \cite{Novak03}
+% and \cite{Lee05} and (Case 3) a patent \cite{JoeScientist001},
+% work accepted for publication \cite{rous08}, 'YYYYb'-test for prolific author
+% \cite{SaeediMEJ10} and \cite{SaeediJETC10}. Other cites might contain
+% 'duplicate' DOI and URLs (some SIAM articles) \cite{Kirschmer:2010:AEI:1958016.1958018}.
+% Boris / Barbara Beeton: multi-volume works as books
+% \cite{MR781536} and \cite{MR781537}.
+
+
+
+% \begin{acks}
+% We are grateful to the following people for resources, discussions and
+% suggestions: Prof. Jacobo Melamed Cattan (Ophthalmology-UFRGS), Prof.
+% Roberto da Silva (UFRGS), Prof. Luis A. V. Carvalho (Optics-USP/SC),
+% Prof. Anatolio Laschuk (UFRGS), Leandro Fernandes, Marcos
+% Slomp, Leandro Lichtenfelz, Renato Silveira,
+% Eduardo Gastal, and Denison Tavares. We also thank the volunteers who
+% allowed us to collect pictures and videos of their irises: Alex Gimenes,
+% Boris Starov, Christian Pagot, Claudio Menezes, Giovane Kuhn, Jo\~{a}o
+% Paulo Gois, Leonardo Schmitz, Rodrigo Mendes, and Tiago Etiene.
+% \end{acks}
+
+% Bibliography
+\bibliographystyle{ACM-Reference-Format-Journals}
+\bibliography{ref}
+                                % Sample .bib file with references that match those in
+                                % the 'Specifications Document (V1.5)' as well containing
+                                % 'legacy' bibs and bibs with 'alternate codings'.
+
+% \received{September 2008}{March 2009}
+
+\end{document}
+
